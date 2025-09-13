@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+    
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background 0.3s;
+      width: 100%;
+    }
+    
+    button:hover {
+      background: #45a049;
+    }
+    
+    .delete-btn {
+      background: #f44336;
+      padding: 5px 10px;
+      font-size: 12px;
+      margin-left: 10px;
+      width: auto;
+    }
+    
+    .delete-btn:hover {
+      background: #da190b;
+    }
+    
+    .course-item {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .course-info {
+      flex-grow: 1;
+    }
+    
+    .course-title {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    
+    .course-section {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .status {
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .status.available {
+      background: #4CAF50;
+    }
+    
+    .status.full {
+      background: #f44336;
+    }
+    
+    .status.checking {
+      background: #ff9800;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .controls button {
+      flex: 1;
+    }
+    
+    .toggle-btn {
+      background: #2196F3;
+    }
+    
+    .toggle-btn:hover {
+      background: #1976D2;
+    }
+    
+    .toggle-btn.monitoring {
+      background: #ff9800;
+    }
+    
+    .toggle-btn.monitoring:hover {
+      background: #f57c00;
+    }
+    
+    .settings {
+      font-size: 12px;
+    }
+    
+    .settings label {
+      font-size: 11px;
+    }
+    
+    .settings input {
+      padding: 5px;
+      font-size: 12px;
+    }
+    
+    #status-message {
+      text-align: center;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎓 Course Seat Monitor</h1>
+  </div>
+
+  <div class="section">
+    <h3>Add Course to Monitor</h3>
+    <div class="form-group">
+      <label for="course-section">Course Code with Section</label>
+      <input type="text" id="course-section" placeholder="e.g., CSE498R.11, EEE111.4, MAT120.1">
+    </div>
+    
+    <button id="add-course">Add Course</button>
+  </div>
+
+  <div class="section">
+    <h3>Monitoring Settings</h3>
+    <div class="form-group settings">
+      <label for="check-interval">Check Interval (seconds)</label>
+      <input type="number" id="check-interval" value="3" min="1" max="60">
+    </div>
+    
+    <div class="form-group settings">
+      <label for="portal-url">Advising Portal URL</label>
+      <input type="url" id="portal-url" value="https://rds3.northsouth.edu/students/advising" readonly>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Monitored Courses</h3>
+    <div id="course-list">
+      <p style="text-align: center; opacity: 0.7; font-style: italic;">No courses added yet</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="toggle-monitoring" class="toggle-btn">Start Monitoring</button>
+    <button id="refresh-now">Check Now</button>
+  </div>
+
+  <div id="status-message"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

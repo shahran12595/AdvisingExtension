@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Course Portal - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: #003366;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .course-table {
+            background: white;
+            border-collapse: collapse;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .course-table th {
+            background: #0066cc;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .course-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .course-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .status-open {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-full {
+            background: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-waitlist {
+            background: #ff9800;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .seats {
+            font-weight: bold;
+            color: #666;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            background: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎓 University Course Registration Portal</h1>
+        <p>Test Page for Chrome Extension Development</p>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 How to Use This Test Page</h3>
+        <p>This is a sample university portal page to test your Chrome extension:</p>
+        <ol>
+            <li>Load your extension in Chrome (see SETUP.md)</li>
+            <li>Add some of the courses below to your extension</li>
+            <li>Use this page URL as your "Portal URL" in the extension settings</li>
+            <li>Test the monitoring functionality</li>
+        </ol>
+        <p><strong>Note:</strong> This is just for testing. Use your actual university portal for real monitoring.</p>
+    </div>
+
+    <h2>📚 Available Courses - Fall 2024</h2>
+    
+    <table class="course-table">
+        <thead>
+            <tr>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th>Section</th>
+                <th>Instructor</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Enrollment</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>CSE101</strong></td>
+                <td>Introduction to Programming</td>
+                <td><strong>01</strong></td>
+                <td>Dr. Smith</td>
+                <td>MWF 9:00-9:50</td>
+                <td><span class="status-open">OPEN</span></td>
+                <td class="seats">15/30 - <strong>15 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>CSE101</strong></td>
+                <td>Introduction to Programming</td>
+                <td><strong>02</strong></td>
+                <td>Dr. Johnson</td>
+                <td>TTh 11:00-12:15</td>
+                <td><span class="status-full">FULL</span></td>
+                <td class="seats">25/25 - <strong>0 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>MATH205</strong></td>
+                <td>Calculus II</td>
+                <td><strong>A</strong></td>
+                <td>Dr. Wilson</td>
+                <td>MWF 10:00-10:50</td>
+                <td><span class="status-open">OPEN</span></td>
+                <td class="seats">8/35 - <strong>27 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>MATH205</strong></td>
+                <td>Calculus II</td>
+                <td><strong>B</strong></td>
+                <td>Dr. Brown</td>
+                <td>TTh 2:00-3:15</td>
+                <td><span class="status-waitlist">WAITLIST</span></td>
+                <td class="seats">35/35 - <strong>Waitlist available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ENG110</strong></td>
+                <td>English Composition</td>
+                <td><strong>01</strong></td>
+                <td>Prof. Davis</td>
+                <td>MWF 1:00-1:50</td>
+                <td><span class="status-open">OPEN</span></td>
+                <td class="seats">12/20 - <strong>8 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>ENG110</strong></td>
+                <td>English Composition</td>
+                <td><strong>02</strong></td>
+                <td>Prof. Miller</td>
+                <td>TTh 9:30-10:45</td>
+                <td><span class="status-full">FULL</span></td>
+                <td class="seats">20/20 - <strong>0 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>PHYS201</strong></td>
+                <td>General Physics I</td>
+                <td><strong>L01</strong></td>
+                <td>Dr. Taylor</td>
+                <td>MW 3:00-4:50</td>
+                <td><span class="status-open">OPEN</span></td>
+                <td class="seats">18/24 - <strong>6 seats available</strong></td>
+            </tr>
+            <tr>
+                <td><strong>HIST150</strong></td>
+                <td>World History</td>
+                <td><strong>A1</strong></td>
+                <td>Prof. Anderson</td>
+                <td>TTh 1:00-2:15</td>
+                <td><span class="status-full">FULL</span></td>
+                <td class="seats">30/30 - <strong>0 seats available</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin: 30px 0;">
+        <h3>🔄 Test Extension Features</h3>
+        <p>Use these courses to test your extension:</p>
+        <ul>
+            <li><strong>Available Courses:</strong> CSE101-01, MATH205-A, ENG110-01, PHYS201-L01</li>
+            <li><strong>Full Courses:</strong> CSE101-02, ENG110-02, HIST150-A1</li>
+            <li><strong>Waitlist:</strong> MATH205-B</li>
+        </ul>
+    </div>
+
+    <div class="instructions">
+        <h3>🧪 Testing Steps</h3>
+        <ol>
+            <li>Add CSE101 Section 01 to your extension (should show "Available")</li>
+            <li>Add CSE101 Section 02 to your extension (should show "Full")</li>
+            <li>Test the "Check Now" functionality</li>
+            <li>Try starting monitoring mode</li>
+            <li>Use browser DevTools to simulate status changes</li>
+        </ol>
+        
+        <button class="button" onclick="simulateStatusChange()">Simulate Status Change</button>
+        <button class="button" onclick="addNewCourse()">Add New Course</button>
+        
+        <p><small><strong>Note:</strong> The buttons above will modify this test page to help you test the extension's monitoring capabilities.</small></p>
+    </div>
+
+    <script>
+        // Test functions to simulate real portal behavior
+        function simulateStatusChange() {
+            // Change CSE101-01 from OPEN to FULL
+            const rows = document.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.innerText.includes('CSE101') && row.innerText.includes('01')) {
+                    const statusCell = row.querySelector('.status-open');
+                    if (statusCell) {
+                        statusCell.className = 'status-full';
+                        statusCell.textContent = 'FULL';
+                        const seatsCell = row.querySelector('.seats');
+                        if (seatsCell) {
+                            seatsCell.innerHTML = '30/30 - <strong>0 seats available</strong>';
+                        }
+                        alert('CSE101-01 changed from OPEN to FULL! Your extension should detect this.');
+                    }
+                }
+            });
+        }
+
+        function addNewCourse() {
+            const tbody = document.querySelector('tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><strong>BIO101</strong></td>
+                <td>Introduction to Biology</td>
+                <td><strong>01</strong></td>
+                <td>Dr. Green</td>
+                <td>MWF 11:00-11:50</td>
+                <td><span class="status-open">OPEN</span></td>
+                <td class="seats">5/25 - <strong>20 seats available</strong></td>
+            `;
+            tbody.appendChild(newRow);
+            alert('New course BIO101-01 added! Try monitoring it with your extension.');
+        }
+
+        // Simulate periodic updates (like a real portal might have)
+        setInterval(() => {
+            // Randomly update seat counts for open courses
+            const openCourses = document.querySelectorAll('.status-open');
+            openCourses.forEach(status => {
+                const row = status.closest('tr');
+                const seatsCell = row.querySelector('.seats');
+                if (seatsCell && Math.random() < 0.1) { // 10% chance
+                    const currentText = seatsCell.textContent;
+                    const match = currentText.match(/(\d+)\/(\d+)/);
+                    if (match) {
+                        const enrolled = parseInt(match[1]);
+                        const capacity = parseInt(match[2]);
+                        const change = Math.random() < 0.5 ? 1 : -1;
+                        const newEnrolled = Math.max(0, Math.min(capacity, enrolled + change));
+                        const available = capacity - newEnrolled;
+                        seatsCell.innerHTML = `${newEnrolled}/${capacity} - <strong>${available} seats available</strong>`;
+                        
+                        if (available === 0) {
+                            status.className = 'status-full';
+                            status.textContent = 'FULL';
+                        }
+                    }
+                }
+            });
+        }, 30000); // Update every 30 seconds
+
+        console.log('🎓 University Portal Test Page Loaded');
+        console.log('This page simulates a university course portal for testing your Chrome extension.');
+        console.log('Use the courses listed above to test monitoring functionality.');
+    </script>
+</body>
+</html>

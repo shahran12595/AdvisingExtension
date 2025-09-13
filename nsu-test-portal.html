@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSU Advising Portal - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .course-list {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+        }
+        .course-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+        }
+        .course-item:last-child {
+            border-bottom: none;
+        }
+        .course-code {
+            font-weight: bold;
+            color: #333;
+        }
+        .availability {
+            font-weight: bold;
+        }
+        .available {
+            color: #4CAF50;
+        }
+        .full {
+            color: #f44336;
+        }
+        .header {
+            background: #003366;
+            color: white;
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+            text-align: center;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #0066cc;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="course-list">
+        <div class="header">
+            <h2>North South University</h2>
+            <p>Student Advising Portal - Course Availability</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>🧪 NSU Portal Test Page</h3>
+            <p>This simulates your actual NSU advising portal format. Format: <strong>enrolled(capacity)</strong></p>
+            <ul>
+                <li><strong>Available:</strong> CSE498R.11 = 39(45), EEE111.3 = 30(35)</li>
+                <li><strong>Full:</strong> CSE498R.14 = 45(45), EEE111.8 = 35(35)</li>
+                <li><strong>Logic:</strong> If enrolled < capacity → Seats available!</li>
+            </ul>
+        </div>
+
+        <!-- Course listings matching NSU format: enrolled(capacity) -->
+        <div class="course-item">
+            <span class="course-code">CSE498R.11</span>
+            <span class="availability available">39(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.12</span>
+            <span class="availability available">44(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.13</span>
+            <span class="availability available">44(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.14</span>
+            <span class="availability full">45(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.15</span>
+            <span class="availability available">43(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.16</span>
+            <span class="availability full">45(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.17</span>
+            <span class="availability full">45(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.18</span>
+            <span class="availability full">45(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.19</span>
+            <span class="availability available">44(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">CSE498R.20</span>
+            <span class="availability available">44(45)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.1</span>
+            <span class="availability available">33(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.2</span>
+            <span class="availability full">35(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.3</span>
+            <span class="availability available">30(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.4</span>
+            <span class="availability available">33(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.5</span>
+            <span class="availability available">34(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.6</span>
+            <span class="availability available">15(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.7</span>
+            <span class="availability available">26(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.8</span>
+            <span class="availability full">35(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.9</span>
+            <span class="availability available">28(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.10</span>
+            <span class="availability available">30(35)</span>
+        </div>
+        <div class="course-item">
+            <span class="course-code">EEE111.11</span>
+            <span class="availability available">33(35)</span>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="test-button" onclick="simulateChange()">Simulate Seat Change</button>
+            <button class="test-button" onclick="randomUpdate()">Random Update</button>
+        </div>
+    </div>
+
+    <script>
+        function simulateChange() {
+            // Change CSE498R.14 from 45(45) FULL to 44(45) AVAILABLE
+            const items = document.querySelectorAll('.course-item');
+            items.forEach(item => {
+                const courseCode = item.querySelector('.course-code');
+                const availability = item.querySelector('.availability');
+                
+                if (courseCode.textContent === 'CSE498R.14') {
+                    availability.textContent = '44(45)';
+                    availability.className = 'availability available';
+                    alert('CSE498R.14 changed from FULL 45(45) to AVAILABLE 44(45)! Extension should detect this.');
+                }
+            });
+        }
+
+        function randomUpdate() {
+            // Randomly change enrollment of some courses
+            const items = document.querySelectorAll('.course-item');
+            const targetItems = Array.from(items).slice(0, 5); // First 5 courses
+            
+            targetItems.forEach(item => {
+                if (Math.random() < 0.3) { // 30% chance
+                    const availability = item.querySelector('.availability');
+                    const current = availability.textContent;
+                    const match = current.match(/(\\d+)\\((\\d+)\\)/);
+                    
+                    if (match) {
+                        const capacity = parseInt(match[2]);
+                        const newEnrolled = Math.floor(Math.random() * (capacity + 1));
+                        availability.textContent = `${newEnrolled}(${capacity})`;
+                        availability.className = newEnrolled < capacity ? 'availability available' : 'availability full';
+                    }
+                }
+            });
+        }
+
+        // Auto-update every 10 seconds to simulate real portal
+        setInterval(() => {
+            if (Math.random() < 0.2) { // 20% chance every 10 seconds
+                randomUpdate();
+            }
+        }, 10000);
+
+        console.log('🎓 NSU Portal Test Page Loaded');
+        console.log('Format: enrolled(capacity) - CSE498R.11 = 39(45) means 39 enrolled, 6 seats available');
+        console.log('FULL: 45(45) = no seats, AVAILABLE: 44(45) = 1 seat available');
+        console.log('Test your extension with courses like CSE498R.11, EEE111.3, etc.');
+    </script>
+</body>
+</html>

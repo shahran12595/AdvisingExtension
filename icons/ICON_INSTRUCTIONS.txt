@@ -1,0 +1,17 @@
+# PLACEHOLDER - Replace with actual PNG icons
+# 
+# This is a placeholder file. You need to create actual PNG icon files:
+# - icon16.png (16x16 pixels)
+# - icon48.png (48x48 pixels) 
+# - icon128.png (128x128 pixels)
+#
+# You can:
+# 1. Convert the SVG file (icon.svg) to PNG format using online tools
+# 2. Create custom icons using design software like GIMP, Photoshop, or Canva
+# 3. Use icon generators like https://realfavicongenerator.net/
+#
+# The icons should represent the extension (graduation cap, books, notification bell, etc.)
+# and match the gradient theme used in the popup interface.
+
+# For testing purposes, you can temporarily copy any PNG file and rename it
+# to these filenames, but proper icons will make the extension look professional.

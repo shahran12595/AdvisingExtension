@@ -1,0 +1,34 @@
+<!-- Simple SVG icon as placeholder - you can replace with actual PNG icons -->
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#grad1)" stroke="white" stroke-width="4"/>
+  
+  <!-- Graduation cap -->
+  <g transform="translate(64, 64)">
+    <!-- Cap base -->
+    <ellipse cx="0" cy="-10" rx="25" ry="8" fill="white"/>
+    <!-- Cap top -->
+    <rect x="-30" y="-25" width="60" height="8" rx="4" fill="white"/>
+    <!-- Tassel -->
+    <line x1="25" y1="-25" x2="35" y2="-35" stroke="white" stroke-width="2"/>
+    <circle cx="35" cy="-35" r="3" fill="white"/>
+  </g>
+  
+  <!-- Books -->
+  <g transform="translate(64, 90)">
+    <rect x="-20" y="-5" width="15" height="8" rx="1" fill="white" opacity="0.9"/>
+    <rect x="-3" y="-8" width="15" height="8" rx="1" fill="white" opacity="0.7"/>
+    <rect x="14" y="-3" width="15" height="8" rx="1" fill="white" opacity="0.8"/>
+  </g>
+  
+  <!-- Notification indicator -->
+  <circle cx="100" cy="28" r="12" fill="#ff4444"/>
+  <text x="100" y="33" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">!</text>
+</svg>
