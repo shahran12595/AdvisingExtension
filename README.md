@@ -154,3 +154,4 @@ If you encounter issues or need help adapting the extension for your university'
 ---
 
 **Note**: This extension is designed to help students monitor course availability. Please use it responsibly and in accordance with your university's terms of service and policies regarding automated access to their systems.
+rftyhuj
