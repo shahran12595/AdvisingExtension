@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 Auto-Scroll Course Portal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #003366;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .course-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+        .course-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .course-code {
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        .enrollment {
+            color: #666;
+            margin-top: 5px;
+        }
+        .available {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .full {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .target-course {
+            background: #e3f2fd !important;
+            border: 2px solid #2196F3 !important;
+        }
+        .scroll-info {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .load-more {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .load-more button {
+            background: #0066cc;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .load-more button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Auto-Scroll Course Portal Test</h1>
+        <p>This page tests the extension's auto-scrolling feature</p>
+        <p><strong>Target Course:</strong> CSE323.4 (located at the bottom of page)</p>
+    </div>
+
+    <div class="scroll-info" id="scrollInfo">
+        Scroll Position: 0px<br>
+        Course Found: No
+    </div>
+
+    <div class="course-section">
+        <h2>📚 Fall 2024 Courses - Page 1</h2>
+        
+        <div class="course-item">
+            <div class="course-code">CSE101.1</div>
+            <div class="enrollment available">Enrollment: 25(45) - 20 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">CSE101.2</div>
+            <div class="enrollment full">Enrollment: 45(45) - FULL</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">MATH201.1</div>
+            <div class="enrollment available">Enrollment: 30(35) - 5 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">MATH201.2</div>
+            <div class="enrollment full">Enrollment: 35(35) - FULL</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">ENG110.1</div>
+            <div class="enrollment available">Enrollment: 18(25) - 7 seats available</div>
+        </div>
+    </div>
+
+    <div class="course-section">
+        <h2>📚 Fall 2024 Courses - Page 2</h2>
+        
+        <div class="course-item">
+            <div class="course-code">PHYS201.1</div>
+            <div class="enrollment available">Enrollment: 20(30) - 10 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">PHYS201.2</div>
+            <div class="enrollment full">Enrollment: 30(30) - FULL</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">CHEM150.1</div>
+            <div class="enrollment available">Enrollment: 22(40) - 18 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">HIST101.1</div>
+            <div class="enrollment available">Enrollment: 15(25) - 10 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">BIO101.1</div>
+            <div class="enrollment full">Enrollment: 35(35) - FULL</div>
+        </div>
+    </div>
+
+    <div class="load-more">
+        <button onclick="loadMoreCourses()">Load More Courses</button>
+    </div>
+
+    <div class="course-section">
+        <h2>📚 Fall 2024 Courses - Page 3</h2>
+        
+        <div class="course-item">
+            <div class="course-code">ART200.1</div>
+            <div class="enrollment available">Enrollment: 12(20) - 8 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">MUS150.1</div>
+            <div class="enrollment available">Enrollment: 10(15) - 5 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">PSY101.1</div>
+            <div class="enrollment full">Enrollment: 40(40) - FULL</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">SOC200.1</div>
+            <div class="enrollment available">Enrollment: 28(35) - 7 seats available</div>
+        </div>
+    </div>
+
+    <div class="course-section">
+        <h2>📚 Fall 2024 Courses - Page 4 (Target Course Here!)</h2>
+        
+        <div class="course-item">
+            <div class="course-code">ECON101.1</div>
+            <div class="enrollment available">Enrollment: 33(45) - 12 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">PHIL150.1</div>
+            <div class="enrollment full">Enrollment: 25(25) - FULL</div>
+        </div>
+        
+        <!-- TARGET COURSE - This is what the extension should find -->
+        <div class="course-item target-course">
+            <div class="course-code">CSE323.4</div>
+            <div class="enrollment available">Enrollment: 38(45) - 7 seats available</div>
+            <p><strong>🎯 TARGET COURSE!</strong> Extension should auto-scroll to find this course.</p>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">CSE400.1</div>
+            <div class="enrollment full">Enrollment: 30(30) - FULL</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">MATH400.1</div>
+            <div class="enrollment available">Enrollment: 20(25) - 5 seats available</div>
+        </div>
+    </div>
+
+    <div class="course-section">
+        <h2>📚 Fall 2024 Courses - Page 5 (Bottom)</h2>
+        
+        <div class="course-item">
+            <div class="course-code">GRAD500.1</div>
+            <div class="enrollment available">Enrollment: 5(15) - 10 seats available</div>
+        </div>
+        
+        <div class="course-item">
+            <div class="course-code">GRAD600.1</div>
+            <div class="enrollment full">Enrollment: 15(15) - FULL</div>
+        </div>
+        
+        <p style="text-align: center; padding: 40px; color: #666;">
+            🏁 End of course list - Auto-scroll test complete!
+        </p>
+    </div>
+
+    <div style="background: #e3f2fd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+        <h3>🧪 How to Test Auto-Scroll:</h3>
+        <ol>
+            <li>Load the Chrome extension</li>
+            <li>Add course: <strong>CSE323.4</strong></li>
+            <li>Click "Check Now" or "Start Monitoring"</li>
+            <li>Watch the page auto-scroll to find the target course</li>
+            <li>The course should be highlighted when found</li>
+        </ol>
+        
+        <h3>✅ Expected Behavior:</h3>
+        <ul>
+            <li>Extension will scroll down automatically</li>
+            <li>Will click "Load More" buttons if present</li>
+            <li>Will highlight the found course</li>
+            <li>Will show "7 seats available" in activity log</li>
+            <li>Will scroll back to top when done</li>
+        </ul>
+    </div>
+
+    <script>
+        // Update scroll position indicator
+        window.addEventListener('scroll', () => {
+            const scrollInfo = document.getElementById('scrollInfo');
+            const scrollTop = window.scrollY;
+            const targetCourse = document.querySelector('.target-course');
+            const targetVisible = targetCourse && isElementInViewport(targetCourse);
+            
+            scrollInfo.innerHTML = `
+                Scroll Position: ${scrollTop}px<br>
+                Course Found: ${targetVisible ? 'YES! 🎯' : 'No'}
+            `;
+        });
+
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        let additionalCoursesLoaded = false;
+
+        function loadMoreCourses() {
+            if (additionalCoursesLoaded) return;
+            
+            const button = event.target;
+            button.textContent = 'Loading...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                const courseSection = document.querySelector('.course-section:nth-child(4)');
+                const newCourses = `
+                    <div class="course-item">
+                        <div class="course-code">LANG200.1</div>
+                        <div class="enrollment available">Enrollment: 15(20) - 5 seats available</div>
+                    </div>
+                    <div class="course-item">
+                        <div class="course-code">LANG200.2</div>
+                        <div class="enrollment full">Enrollment: 20(20) - FULL</div>
+                    </div>
+                `;
+                
+                courseSection.innerHTML += newCourses;
+                button.textContent = 'More Courses Loaded!';
+                additionalCoursesLoaded = true;
+                
+                console.log('📚 Additional courses loaded via Load More button');
+            }, 1000);
+        }
+
+        console.log('🔄 Auto-scroll test page loaded');
+        console.log('Target course CSE323.4 is located at the bottom - test auto-scrolling feature!');
+    </script>
+</body>
+</html>

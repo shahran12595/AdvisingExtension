@@ -27,8 +27,63 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'checkNow':
       checkCourses(request.courses, request.portalUrl);
       break;
+    case 'courseCheckComplete':
+      handleCourseCheckComplete(request.courseData, request.result);
+      sendResponse({ status: 'received' });
+      break;
   }
 });
+
+function handleCourseCheckComplete(courseData, result) {
+  console.log('Course check complete for:', courseData, result);
+  
+  // Update course status in storage
+  updateCourseStatus(courseData.fullCourseId, result);
+  
+  // If seats are available, send notification
+  if (result.available > 0) {
+    sendNotification(courseData.fullCourseId, result.available);
+  }
+}
+
+async function updateCourseStatus(fullCourseId, result) {
+  try {
+    const data = await chrome.storage.sync.get(['courses', 'lastActivity']);
+    const courses = data.courses || [];
+    const lastActivity = data.lastActivity || [];
+    
+    // Find and update the course
+    const courseIndex = courses.findIndex(c => c.fullCourseId === fullCourseId);
+    if (courseIndex !== -1) {
+      courses[courseIndex].lastChecked = new Date().toISOString();
+      courses[courseIndex].status = result.available > 0 ? 'Available' : 'Full';
+      courses[courseIndex].available = result.available;
+      courses[courseIndex].enrolled = result.enrolled;
+      courses[courseIndex].capacity = result.capacity;
+      
+      // Add to activity log
+      const activity = {
+        timestamp: new Date().toISOString(),
+        course: fullCourseId,
+        status: result.available > 0 ? 'Available' : 'Full',
+        available: result.available,
+        enrolled: result.enrolled,
+        capacity: result.capacity,
+        message: result.message || `${result.available} seats available`
+      };
+      
+      lastActivity.unshift(activity);
+      if (lastActivity.length > 50) {
+        lastActivity.splice(50);
+      }
+      
+      await chrome.storage.sync.set({ courses, lastActivity });
+      console.log('Updated course status and activity');
+    }
+  } catch (error) {
+    console.error('Error updating course status:', error);
+  }
+}
 
 // Listen for alarms (for periodic checking)
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -374,4 +429,21 @@ function checkCourseAvailability(courseCode, section) {
       error: error.message
     };
   }
+}
+
+// Send notification when seats become available
+function sendNotification(courseId, availableSeats) {
+  const message = availableSeats === 'Unknown' ? 
+    `Seats are now available!` : 
+    `${availableSeats} seat(s) available!`;
+    
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: `Course Available: ${courseId}`,
+    message: message,
+    priority: 2
+  });
+  
+  console.log(`Notification sent for ${courseId}: ${message}`);
 }
