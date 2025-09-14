@@ -166,11 +166,18 @@ async function checkCourseInTab(tabId, course) {
     });
     
     // Execute content script to check course
-    const result = await chrome.tabs.sendMessage(tabId, {
-      action: 'checkCourse',
-      courseCode: course.code,
-      section: course.section
-    });
+    let result;
+    try {
+      result = await chrome.tabs.sendMessage(tabId, {
+        action: 'checkCourse',
+        courseCode: course.code,
+        section: course.section
+      });
+    } catch (error) {
+      console.error(`Failed to send message to tab ${tabId}:`, error);
+      updateCourseStatus(course.id, 'error', 0, null, null, 'Could not communicate with portal page');
+      return;
+    }
     
     console.log(`Course check result for ${course.code}.${course.section}:`, result);
     

@@ -8,14 +8,42 @@
   
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'checkCourseAvailability') {
-      const result = checkCourseAvailability(request.courseCode, request.section);
-      sendResponse(result);
+    console.log('Content script received message:', request);
+    
+    if (request.action === 'checkCourse' || request.action === 'checkCourseAvailability') {
+      try {
+        const result = checkCourseAvailability(request.courseCode, request.section);
+        console.log('Sending response:', result);
+        sendResponse(result);
+      } catch (error) {
+        console.error('Error checking course:', error);
+        sendResponse({
+          success: false,
+          error: error.message,
+          message: `Error checking course: ${error.message}`
+        });
+      }
     } else if (request.action === 'getPageCourses') {
-      const courses = extractCoursesFromPage();
-      sendResponse(courses);
+      try {
+        const courses = extractCoursesFromPage();
+        sendResponse(courses);
+      } catch (error) {
+        console.error('Error extracting courses:', error);
+        sendResponse({
+          success: false,
+          error: error.message
+        });
+      }
+    } else {
+      // Unknown action
+      sendResponse({
+        success: false,
+        error: 'Unknown action',
+        message: `Unknown action: ${request.action}`
+      });
     }
-    return true; // Keep message channel open
+    
+    return true; // Keep message channel open for async response
   });
   
   // Enhanced course availability checking function
@@ -62,19 +90,23 @@
       
       console.log('Course not found on page');
       return {
-        available: false,
-        seats: 0,
+        success: false,
+        available: 0,
+        enrolled: null,
+        capacity: null,
         found: false,
-        error: `Course ${fullCourseId} not found on current page. Check if you're on the correct page.`
+        message: `Course ${fullCourseId} not found on current page. Check if you're on the correct page.`
       };
       
     } catch (error) {
       console.error('Error checking course availability:', error);
       return {
-        available: false,
-        seats: 0,
+        success: false,
+        available: 0,
+        enrolled: null,
+        capacity: null,
         found: false,
-        error: `Error: ${error.message}`
+        message: `Error: ${error.message}`
       };
     }
   }
@@ -98,8 +130,8 @@
         const available = capacity - enrolled;     // Available seats = capacity - enrolled
         
         return {
-          available: available > 0,
-          seats: available,
+          success: true,
+          available: available,
           enrolled: enrolled,
           capacity: capacity,
           found: true,
@@ -126,8 +158,8 @@
       const available = capacity - enrolled;      // Available = capacity - enrolled
       
       return {
-        available: available > 0,
-        seats: available,
+        success: true,
+        available: available,
         enrolled: enrolled,
         capacity: capacity,
         found: true,
@@ -298,8 +330,8 @@
           const available = capacity - enrolled;
           
           return {
-            available: available > 0,
-            seats: available,
+            success: true,
+            available: available,
             enrolled: enrolled,
             capacity: capacity,
             found: true,

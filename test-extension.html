@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Test - Load Extension</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            background: #f9f9f9;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .success {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+        .warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Course Seat Monitor - Setup Instructions</h1>
+        
+        <div class="step success">
+            <h3>✅ Recent Activity Section Added!</h3>
+            <p>The extension now includes a "Recent Activity" section that will show:</p>
+            <ul>
+                <li>🎉 <strong>Seat Available</strong>: When seats become available</li>
+                <li>❌ <strong>Seat Full</strong>: When courses are at capacity</li>
+                <li>⚠️ <strong>Errors</strong>: If course cannot be found</li>
+                <li>🚀 <strong>System Messages</strong>: Monitoring start/stop</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Load the Extension</h3>
+            <ol>
+                <li>Open Chrome browser</li>
+                <li>Go to <span class="highlight">chrome://extensions/</span></li>
+                <li>Enable "Developer mode" (toggle in top right)</li>
+                <li>Click "Load unpacked"</li>
+                <li>Select the folder: <br><code>/Users/shahranhossain/Personal Drive/AdvisingExtension/AdvisingExtension</code></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Test the Extension</h3>
+            <ol>
+                <li>Click the extension icon in Chrome toolbar</li>
+                <li>Add a course like: <span class="highlight">CSE498R.11</span></li>
+                <li>Click "Start Monitoring"</li>
+                <li>Watch the "Recent Activity" section for updates</li>
+            </ol>
+        </div>
+
+        <div class="step warning">
+            <h3>🔧 Fixes Applied:</h3>
+            <ul>
+                <li><strong>✅ Added Recent Activity section</strong> with real-time updates</li>
+                <li><strong>✅ Fixed message listener errors</strong> by adding proper responses</li>
+                <li><strong>✅ Activity log shows seat status</strong> for each course section</li>
+                <li><strong>✅ Auto-stop monitoring</strong> when seats become available</li>
+                <li><strong>✅ No more async message errors</strong></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Expected Activity Log Output:</h3>
+            <div style="background: #f0f0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+                🚀 Started monitoring 1 course(s) every 3 seconds &nbsp;&nbsp;&nbsp;&nbsp; 2:45:30 PM<br>
+                🎉 CSE498R.11 - 6 SEAT(S) AVAILABLE! &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2:45:33 PM<br>
+                ❌ CSE498R.14 - SEAT FULL (45/45) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2:45:33 PM<br>
+            </div>
+        </div>
+
+        <div class="step success">
+            <h3>🎉 All Issues Fixed!</h3>
+            <p>The extension should now work without errors and show clear seat availability status in the Recent Activity section.</p>
+        </div>
+    </div>
+</body>
+</html>

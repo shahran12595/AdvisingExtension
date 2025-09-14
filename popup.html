@@ -174,6 +174,91 @@
       font-size: 12px;
       background: rgba(255, 255, 255, 0.1);
     }
+
+    /* Recent Activity Styles */
+    .activity-log {
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .activity-item {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-text {
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .activity-time {
+      font-size: 10px;
+      opacity: 0.7;
+      white-space: nowrap;
+    }
+
+    .activity-item.available {
+      background: rgba(76, 175, 80, 0.2);
+      border-left: 3px solid #4CAF50;
+      padding-left: 8px;
+      margin: 2px 0;
+      border-radius: 3px;
+    }
+
+    .activity-item.full {
+      background: rgba(244, 67, 54, 0.2);
+      border-left: 3px solid #f44336;
+      padding-left: 8px;
+      margin: 2px 0;
+      border-radius: 3px;
+    }
+
+    .activity-item.error {
+      background: rgba(255, 152, 0, 0.2);
+      border-left: 3px solid #ff9800;
+      padding-left: 8px;
+      margin: 2px 0;
+      border-radius: 3px;
+    }
+
+    .activity-item.info {
+      background: rgba(33, 150, 243, 0.2);
+      border-left: 3px solid #2196F3;
+      padding-left: 8px;
+      margin: 2px 0;
+      border-radius: 3px;
+    }
+
+    .no-activity {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-style: italic;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .secondary-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -217,6 +302,15 @@
   </div>
 
   <div id="status-message"></div>
+
+  <!-- Recent Activity Section -->
+  <div class="section">
+    <h3>Recent Activity</h3>
+    <div id="activity-log" class="activity-log">
+      <p class="no-activity">No monitoring activity yet</p>
+    </div>
+    <button id="clear-activity" class="secondary-btn" style="font-size: 12px; padding: 5px 10px; margin-top: 10px;">Clear Log</button>
+  </div>
 
   <script src="popup.js"></script>
 </body>

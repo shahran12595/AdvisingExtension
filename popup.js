@@ -8,12 +8,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const checkIntervalInput = document.getElementById('check-interval');
   const portalUrlInput = document.getElementById('portal-url');
   const statusMessage = document.getElementById('status-message');
+  const activityLog = document.getElementById('activity-log');
+  const clearActivityBtn = document.getElementById('clear-activity');
 
   let isMonitoring = false;
   let courses = [];
+  let activityHistory = [];
 
   // Load saved data
   loadData();
+  loadActivityHistory();
 
   // Event listeners
   addCourseBtn.addEventListener('click', addCourse);
@@ -21,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
   refreshNowBtn.addEventListener('click', refreshNow);
   checkIntervalInput.addEventListener('change', saveSettings);
   portalUrlInput.addEventListener('change', saveSettings);
+  clearActivityBtn.addEventListener('click', clearActivityLog);
 
   // Allow Enter key to add course
   courseSectionInput.addEventListener('keypress', function(e) {
@@ -246,17 +251,133 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update course status in the UI
       const course = courses.find(c => c.id === request.courseId);
       if (course) {
+        const oldStatus = course.status;
         course.status = request.status;
         course.available = request.available || 0;
         course.enrolled = request.enrolled;
         course.capacity = request.capacity;
         course.errorMessage = request.errorMessage;
         course.lastChecked = Date.now();
+        
+        // Log activity
+        logActivity(course, request);
+        
+        // Stop monitoring if seat becomes available
+        if (request.status === 'available' && request.available > 0) {
+          showMessage(`🎉 SEAT FOUND! ${course.code}.${course.section} has ${request.available} seat(s)! Monitoring stopped.`, 'success');
+          stopMonitoring();
+        }
+        
         displayCourses();
         saveCourses();
       }
+      // Always send response to prevent message channel error
+      sendResponse({received: true});
     } else if (request.action === 'checkComplete') {
       showMessage('Course check completed', 'info');
+      sendResponse({received: true});
+    } else if (request.action === 'monitoringStarted') {
+      // Log monitoring start activity
+      const timestamp = new Date().toLocaleTimeString();
+      activityHistory.unshift({
+        message: `🚀 Started monitoring ${request.coursesCount} course(s) every ${request.interval} seconds`,
+        timestamp,
+        statusClass: 'info',
+        courseCode: 'SYSTEM'
+      });
+      displayActivityLog();
+      saveActivityHistory();
+      sendResponse({received: true});
+    } else if (request.action === 'seatFound') {
+      // Handle seat found notification
+      showMessage(`🎉 SEAT AVAILABLE! Monitoring stopped automatically.`, 'success');
+      stopMonitoring();
+      sendResponse({received: true});
     }
+    
+    // Return true to indicate async response
+    return true;
   });
+
+  // Activity logging functions
+  function logActivity(course, statusData) {
+    const timestamp = new Date().toLocaleTimeString();
+    let message, statusClass;
+    
+    if (statusData.status === 'available' && statusData.available > 0) {
+      message = `🎉 ${course.code}.${course.section} - ${statusData.available} SEAT(S) AVAILABLE!`;
+      statusClass = 'available';
+    } else if (statusData.status === 'full') {
+      message = `❌ ${course.code}.${course.section} - SEAT FULL (${statusData.enrolled}/${statusData.capacity})`;
+      statusClass = 'full';
+    } else if (statusData.status === 'error') {
+      message = `⚠️ ${course.code}.${course.section} - ERROR: ${statusData.errorMessage || 'Unknown error'}`;
+      statusClass = 'error';
+    } else if (statusData.status === 'checking') {
+      message = `🔍 ${course.code}.${course.section} - Checking for available seats...`;
+      statusClass = 'info';
+    } else {
+      message = `🔍 ${course.code}.${course.section} - Status: ${statusData.status}`;
+      statusClass = 'info';
+    }
+    
+    activityHistory.unshift({
+      message,
+      timestamp,
+      statusClass,
+      courseCode: `${course.code}.${course.section}`
+    });
+    
+    // Keep only last 100 entries for better history
+    if (activityHistory.length > 100) {
+      activityHistory = activityHistory.slice(0, 100);
+    }
+    
+    displayActivityLog();
+    saveActivityHistory();
+  }
+
+  function displayActivityLog() {
+    if (activityHistory.length === 0) {
+      activityLog.innerHTML = '<p class="no-activity">No monitoring activity yet</p>';
+      return;
+    }
+    
+    activityLog.innerHTML = activityHistory.map(activity => `
+      <div class="activity-item ${activity.statusClass}">
+        <div class="activity-text">${activity.message}</div>
+        <div class="activity-time">${activity.timestamp}</div>
+      </div>
+    `).join('');
+    
+    // Auto-scroll to top for latest activity
+    activityLog.scrollTop = 0;
+  }
+
+  function clearActivityLog() {
+    activityHistory = [];
+    displayActivityLog();
+    saveActivityHistory();
+    showMessage('Activity log cleared', 'info');
+  }
+
+  function saveActivityHistory() {
+    chrome.storage.local.set({ activityHistory });
+  }
+
+  function loadActivityHistory() {
+    chrome.storage.local.get(['activityHistory'], (data) => {
+      activityHistory = data.activityHistory || [];
+      displayActivityLog();
+    });
+  }
+
+  function stopMonitoring() {
+    isMonitoring = false;
+    toggleMonitoringBtn.textContent = 'Start Monitoring';
+    toggleMonitoringBtn.classList.remove('monitoring');
+    
+    // Tell background to stop monitoring
+    chrome.runtime.sendMessage({ action: 'stopMonitoring' });
+  }
 });
