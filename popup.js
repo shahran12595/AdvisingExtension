@@ -19,6 +19,26 @@ document.addEventListener('DOMContentLoaded', function() {
   loadData();
   loadActivityHistory();
 
+  // Listen for messages from background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'courseStatusUpdate') {
+      // Update course status in real-time
+      const course = courses.find(c => c.fullCourseId === message.courseId);
+      if (course) {
+        course.status = message.status;
+        course.available = message.available;
+        course.enrolled = message.enrolled;
+        course.capacity = message.capacity;
+        course.lastChecked = new Date().toISOString();
+        displayCourses();
+        saveCourses();
+      }
+    } else if (message.action === 'activityUpdate') {
+      // Reload activity history when background script updates it
+      loadActivityHistory();
+    }
+  });
+
   // Event listeners
   addCourseBtn.addEventListener('click', addCourse);
   toggleMonitoringBtn.addEventListener('click', toggleMonitoring);
@@ -26,6 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
   checkIntervalInput.addEventListener('change', saveSettings);
   portalUrlInput.addEventListener('change', saveSettings);
   clearActivityBtn.addEventListener('click', clearActivityLog);
+
+  // Listen for updates from background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'courseStatusUpdate' || message.action === 'activityUpdate') {
+      // Reload data when course status changes
+      loadData();
+      loadActivityHistory();
+    }
+  });
 
   // Allow Enter key to add course
   courseSectionInput.addEventListener('keypress', function(e) {
@@ -51,11 +80,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const code = match[1].toUpperCase();
     const section = match[2];
+    const fullCourseId = `${code}.${section}`;
 
     // Check if course already exists
     const exists = courses.some(course => 
-      course.code.toLowerCase() === code.toLowerCase() && 
-      course.section.toLowerCase() === section.toLowerCase()
+      course.fullCourseId === fullCourseId
     );
 
     if (exists) {
@@ -64,11 +93,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const course = {
-      id: Date.now().toString(),
+      fullCourseId: fullCourseId,
       code: code,
-      name: courseSection, // Use full input as name for display
       section: section,
-      status: 'checking',
+      status: 'Checking',
+      available: 0,
+      enrolled: null,
+      capacity: null,
       lastChecked: null
     };
 
@@ -82,8 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
     showMessage('Course added successfully!', 'success');
   }
 
-  function removeCourse(courseId) {
-    courses = courses.filter(course => course.id !== courseId);
+  function removeCourse(fullCourseId) {
+    courses = courses.filter(course => course.fullCourseId !== fullCourseId);
     saveCourses();
     displayCourses();
     showMessage('Course removed', 'info');
@@ -96,27 +127,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     courseList.innerHTML = courses.map(course => {
-      let statusText = course.status;
+      let statusText = course.status || 'Unknown';
       let statusDetail = '';
       
-      if (course.status === 'available' && course.available > 0) {
+      if (course.status === 'Available' && course.available > 0) {
         statusDetail = `(${course.available} seat${course.available > 1 ? 's' : ''} available)`;
-      } else if (course.status === 'full' && course.enrolled !== null && course.capacity !== null) {
+      } else if (course.status === 'Full' && course.enrolled !== null && course.capacity !== null) {
         statusDetail = `(${course.enrolled}/${course.capacity})`;
-      } else if (course.status === 'error' && course.errorMessage) {
-        statusDetail = `(${course.errorMessage})`;
+      } else if (course.status === 'Checking') {
+        statusDetail = '';
+        statusText = 'CHECKING';
       }
       
       return `
         <div class="course-item">
           <div class="course-info">
-            <div class="course-title">${course.code}.${course.section}</div>
+            <div class="course-title">${course.fullCourseId}</div>
             ${course.lastChecked ? `<div class="course-section">Last checked: ${new Date(course.lastChecked).toLocaleTimeString()}</div>` : ''}
             ${statusDetail ? `<div class="course-section">${statusDetail}</div>` : ''}
           </div>
           <div>
-            <span class="status ${course.status}">${statusText}</span>
-            <button class="delete-btn" data-course-id="${course.id}">×</button>
+            <span class="status ${(course.status || '').toLowerCase()}">${statusText}</span>
+            <button class="delete-btn" data-course-id="${course.fullCourseId}">×</button>
           </div>
         </div>
       `;
@@ -219,22 +251,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function saveCourses() {
-    chrome.storage.local.set({ courses: courses });
+    chrome.storage.sync.set({ courses: courses });
   }
 
   function saveSettings() {
-    chrome.storage.local.set({
+    chrome.storage.sync.set({
       checkInterval: parseInt(checkIntervalInput.value) || 3,
       portalUrl: portalUrlInput.value.trim()
     });
   }
 
   function saveMonitoringState() {
-    chrome.storage.local.set({ isMonitoring: isMonitoring });
+    chrome.storage.sync.set({ isMonitoring: isMonitoring });
   }
 
   function loadData() {
-    chrome.storage.local.get(['courses', 'checkInterval', 'portalUrl', 'isMonitoring'], function(result) {
+    chrome.storage.sync.get(['courses', 'checkInterval', 'portalUrl', 'isMonitoring'], function(result) {
       courses = result.courses || [];
       checkIntervalInput.value = result.checkInterval || 3;
       portalUrlInput.value = result.portalUrl || 'https://rds3.northsouth.edu/students/advising';
@@ -273,9 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       // Always send response to prevent message channel error
       sendResponse({received: true});
+      return false; // Indicate synchronous response
     } else if (request.action === 'checkComplete') {
       showMessage('Course check completed', 'info');
       sendResponse({received: true});
+      return false; // Indicate synchronous response
     } else if (request.action === 'monitoringStarted') {
       // Log monitoring start activity
       const timestamp = new Date().toLocaleTimeString();
@@ -288,15 +322,17 @@ document.addEventListener('DOMContentLoaded', function() {
       displayActivityLog();
       saveActivityHistory();
       sendResponse({received: true});
+      return false; // Indicate synchronous response
     } else if (request.action === 'seatFound') {
       // Handle seat found notification
       showMessage(`🎉 SEAT AVAILABLE! Monitoring stopped automatically.`, 'success');
       stopMonitoring();
       sendResponse({received: true});
+      return false; // Indicate synchronous response
     }
     
-    // Return true to indicate async response
-    return true;
+    // Return false to indicate all responses are synchronous
+    return false;
   });
 
   // Activity logging functions
@@ -362,12 +398,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function saveActivityHistory() {
-    chrome.storage.local.set({ activityHistory });
+    chrome.storage.sync.set({ lastActivity: activityHistory });
   }
 
   function loadActivityHistory() {
-    chrome.storage.local.get(['activityHistory'], (data) => {
-      activityHistory = data.activityHistory || [];
+    chrome.storage.sync.get(['lastActivity'], (data) => {
+      activityHistory = data.lastActivity || [];
       displayActivityLog();
     });
   }

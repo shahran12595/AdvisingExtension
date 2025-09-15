@@ -20,29 +20,50 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
     case 'startMonitoring':
       startMonitoring(request.courses, request.interval, request.portalUrl);
+      sendResponse({ status: 'started' });
       break;
     case 'stopMonitoring':
       stopMonitoring();
+      sendResponse({ status: 'stopped' });
       break;
     case 'checkNow':
       checkCourses(request.courses, request.portalUrl);
+      sendResponse({ status: 'checking' });
       break;
     case 'courseCheckComplete':
       handleCourseCheckComplete(request.courseData, request.result);
       sendResponse({ status: 'received' });
       break;
+    default:
+      sendResponse({ status: 'unknown_action' });
+      break;
   }
+  return false; // All responses are synchronous
 });
 
-function handleCourseCheckComplete(courseData, result) {
-  console.log('Course check complete for:', courseData, result);
+async function handleCourseCheckComplete(courseData, result) {
+  console.log('📋 Course check complete for:', courseData, result);
+  
+  // Get current course status before updating
+  const data = await chrome.storage.sync.get(['courses']);
+  const courses = data.courses || [];
+  const existingCourse = courses.find(c => c.fullCourseId === courseData.fullCourseId);
+  const previousStatus = existingCourse ? existingCourse.status : 'Unknown';
+  
+  console.log(`🔄 Previous status for ${courseData.fullCourseId}: ${previousStatus}`);
+  console.log(`🔄 New availability: ${result.available} seats`);
   
   // Update course status in storage
-  updateCourseStatus(courseData.fullCourseId, result);
+  await updateCourseStatus(courseData.fullCourseId, result);
   
-  // If seats are available, send notification
-  if (result.available > 0) {
+  // Only notify if course changed from Full to Available
+  if (previousStatus === 'Full' && result.available > 0) {
+    console.log(`🎉 Course ${courseData.fullCourseId} became available! Sending notification...`);
     sendNotification(courseData.fullCourseId, result.available);
+  } else if (result.available > 0) {
+    console.log(`✅ Course ${courseData.fullCourseId} still available: ${result.available} seats`);
+  } else {
+    console.log(`❌ Course ${courseData.fullCourseId} is full`);
   }
 }
 
@@ -56,20 +77,27 @@ async function updateCourseStatus(fullCourseId, result) {
     const courseIndex = courses.findIndex(c => c.fullCourseId === fullCourseId);
     if (courseIndex !== -1) {
       courses[courseIndex].lastChecked = new Date().toISOString();
-      courses[courseIndex].status = result.available > 0 ? 'Available' : 'Full';
-      courses[courseIndex].available = result.available;
+      
+      // Fix the status logic - check if available > 0, not just if available exists
+      const isAvailable = result.available > 0;
+      courses[courseIndex].status = isAvailable ? 'Available' : 'Full';
+      courses[courseIndex].available = result.available || 0;
       courses[courseIndex].enrolled = result.enrolled;
       courses[courseIndex].capacity = result.capacity;
+      
+      console.log(`📊 Course status update for ${fullCourseId}:`);
+      console.log(`   Available: ${result.available}, Enrolled: ${result.enrolled}, Capacity: ${result.capacity}`);
+      console.log(`   Status set to: ${isAvailable ? 'Available' : 'Full'}`);
       
       // Add to activity log
       const activity = {
         timestamp: new Date().toISOString(),
         course: fullCourseId,
-        status: result.available > 0 ? 'Available' : 'Full',
-        available: result.available,
+        status: isAvailable ? 'Available' : 'Full',
+        available: result.available || 0,
         enrolled: result.enrolled,
         capacity: result.capacity,
-        message: result.message || `${result.available} seats available`
+        message: result.message || `${result.available || 0} seats available`
       };
       
       lastActivity.unshift(activity);
@@ -78,10 +106,29 @@ async function updateCourseStatus(fullCourseId, result) {
       }
       
       await chrome.storage.sync.set({ courses, lastActivity });
-      console.log('Updated course status and activity');
+      console.log('✅ Updated course status and activity');
+      
+      // Notify popup of course status update
+      try {
+        chrome.runtime.sendMessage({
+          action: 'courseStatusUpdate',
+          courseId: fullCourseId,
+          status: isAvailable ? 'Available' : 'Full',
+          available: result.available || 0,
+          enrolled: result.enrolled,
+          capacity: result.capacity
+        });
+        
+        chrome.runtime.sendMessage({
+          action: 'activityUpdate'
+        });
+      } catch (error) {
+        // Popup might be closed, ignore error
+        console.log('Could not send message to popup (popup may be closed)');
+      }
     }
   } catch (error) {
-    console.error('Error updating course status:', error);
+    console.error('❌ Error updating course status:', error);
   }
 }
 
@@ -106,7 +153,7 @@ function startMonitoring(courses, interval, portalUrl) {
   });
   
   // Store monitoring data
-  chrome.storage.local.set({
+  chrome.storage.sync.set({
     monitoringCourses: courses,
     monitoringInterval: interval,
     portalUrl: portalUrl,
@@ -126,7 +173,7 @@ function stopMonitoring() {
   chrome.alarms.clear('courseCheck');
   
   // Update storage
-  chrome.storage.local.set({ isMonitoring: false });
+  chrome.storage.sync.set({ isMonitoring: false });
   
   console.log('Stopped monitoring courses');
 }
@@ -134,14 +181,14 @@ function stopMonitoring() {
 async function performScheduledCheck() {
   if (!isMonitoring) return;
   
-  const data = await chrome.storage.local.get(['monitoringCourses', 'portalUrl']);
+  const data = await chrome.storage.sync.get(['monitoringCourses', 'portalUrl']);
   if (data.monitoringCourses && data.portalUrl) {
     checkCourses(data.monitoringCourses, data.portalUrl);
   }
 }
 
 async function checkCourses(courses, portalUrl) {
-  console.log('Checking courses for seat availability...');
+  console.log('🔍 Starting course check for', courses.length, 'courses');
   
   try {
     // Check if we have an active tab with the portal
@@ -152,8 +199,22 @@ async function checkCourses(courses, portalUrl) {
       // Use existing tab
       activeTab = tabs[0];
       console.log('Using existing portal tab:', activeTab.id);
+      // Refresh the tab to get latest data
+      await chrome.tabs.reload(activeTab.id);
+      
+      // Wait for reload to complete
+      await new Promise(resolve => {
+        const listener = (tabId, info) => {
+          if (tabId === activeTab.id && info.status === 'complete') {
+            chrome.tabs.onUpdated.removeListener(listener);
+            resolve();
+          }
+        };
+        chrome.tabs.onUpdated.addListener(listener);
+        setTimeout(resolve, 5000); // Fallback timeout
+      });
     } else {
-      // Create new tab to check
+      // Create new tab
       console.log('Creating new portal tab...');
       activeTab = await chrome.tabs.create({ 
         url: portalUrl, 
@@ -165,269 +226,52 @@ async function checkCourses(courses, portalUrl) {
         const listener = (tabId, info) => {
           if (tabId === activeTab.id && info.status === 'complete') {
             chrome.tabs.onUpdated.removeListener(listener);
-            console.log('Portal tab loaded');
             resolve();
           }
         };
         chrome.tabs.onUpdated.addListener(listener);
+        setTimeout(resolve, 10000); // Longer timeout for initial load
       });
     }
     
+    console.log('Portal tab ready, checking courses...');
+    
+    // Check each course
     for (const course of courses) {
       try {
-        console.log(`Checking course: ${course.code}.${course.section}`);
-        await checkCourseInTab(activeTab.id, course);
+        console.log(`Checking course: ${course.fullCourseId}`);
         
-        // Add delay between course checks to avoid overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Send message to content script
+        const response = await chrome.tabs.sendMessage(activeTab.id, {
+          action: 'checkCourse',
+          courseCode: course.code,
+          section: course.section
+        });
+        
+        console.log(`Content script response:`, response);
+        
+        // The actual result will come via the courseCheckComplete message
+        // which is handled by handleCourseCheckComplete function
         
       } catch (error) {
-        console.error(`Error checking course ${course.code}:`, error);
-        updateCourseStatus(course.id, 'error');
+        console.error(`Error checking course ${course.fullCourseId}:`, error);
+        
+        // Update with error status
+        await updateCourseStatus(course.fullCourseId, {
+          found: false,
+          available: 0,
+          enrolled: null,
+          capacity: null,
+          message: `Error: ${error.message}`
+        });
       }
+      
+      // Small delay between course checks
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
   } catch (error) {
     console.error('Error in checkCourses:', error);
-  }
-  
-  // Notify popup that check is complete
-  try {
-    chrome.runtime.sendMessage({ action: 'checkComplete' });
-  } catch (error) {
-    // Popup might be closed, ignore error
-  }
-}
-
-async function checkCourseInTab(tabId, course) {
-  try {
-    console.log(`Checking ${course.code}.${course.section} in tab ${tabId}`);
-    
-    // Force refresh the page first to get latest data
-    await chrome.tabs.reload(tabId);
-    
-    // Wait for page to fully reload
-    await new Promise(resolve => {
-      const listener = (updatedTabId, info) => {
-        if (updatedTabId === tabId && info.status === 'complete') {
-          chrome.tabs.onUpdated.removeListener(listener);
-          resolve();
-        }
-      };
-      chrome.tabs.onUpdated.addListener(listener);
-      
-      // Fallback timeout in case listener doesn't fire
-      setTimeout(resolve, 5000);
-    });
-    
-    // Execute content script to check course
-    let result;
-    try {
-      result = await chrome.tabs.sendMessage(tabId, {
-        action: 'checkCourse',
-        courseCode: course.code,
-        section: course.section
-      });
-    } catch (error) {
-      console.error(`Failed to send message to tab ${tabId}:`, error);
-      updateCourseStatus(course.id, 'error', 0, null, null, 'Could not communicate with portal page');
-      return;
-    }
-    
-    console.log(`Course check result for ${course.code}.${course.section}:`, result);
-    
-    if (result && result.success) {
-      if (result.available > 0) {
-        console.log(`SEAT AVAILABLE! ${course.code}.${course.section}: ${result.available} seats`);
-        
-        // Show notification
-        await chrome.notifications.create({
-          type: 'basic',
-          iconUrl: 'icon128.png',
-          title: 'Seat Available!',
-          message: `${course.code}.${course.section} has ${result.available} seat(s) available!`
-        });
-        
-        updateCourseStatus(course.id, 'available', result.available, result.enrolled, result.capacity);
-      } else {
-        console.log(`${course.code}.${course.section}: Full (${result.enrolled}/${result.capacity})`);
-        updateCourseStatus(course.id, 'full', 0, result.enrolled, result.capacity);
-      }
-    } else {
-      console.log(`Failed to check ${course.code}.${course.section}:`, result?.message || 'Unknown error');
-      updateCourseStatus(course.id, 'error', 0, null, null, result?.message || 'Could not find course');
-    }
-    
-  } catch (error) {
-    console.error(`Error checking course in tab:`, error);
-    updateCourseStatus(course.id, 'error', 0, null, null, error.message);
-  }
-}
-
-function updateCourseStatus(courseId, status, available = 0, enrolled = null, capacity = null, errorMessage = null) {
-  // Update course status in storage
-  chrome.storage.local.get(['courses'], (data) => {
-    const courses = data.courses || [];
-    const course = courses.find(c => c.id === courseId);
-    if (course) {
-      course.status = status;
-      course.available = available;
-      course.enrolled = enrolled;
-      course.capacity = capacity;
-      course.errorMessage = errorMessage;
-      course.lastChecked = Date.now();
-      chrome.storage.local.set({ courses: courses });
-      
-      console.log(`Updated course ${course.code}.${course.section} status to: ${status}${available > 0 ? ` (${available} available)` : enrolled !== null ? ` (${enrolled}/${capacity})` : errorMessage ? ` - ${errorMessage}` : ''}`);
-      
-      // Notify popup of status update
-      try {
-        chrome.runtime.sendMessage({
-          action: 'courseStatusUpdate',
-          courseId: courseId,
-          status: status,
-          available: available,
-          enrolled: enrolled,
-          capacity: capacity,
-          errorMessage: errorMessage
-        });
-      } catch (error) {
-        // Popup might be closed, ignore error
-      }
-    }
-  });
-}
-
-function sendAvailabilityNotification(course, result) {
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icons/icon48.png',
-    title: '🎉 Seat Available!',
-    message: `${course.code} Section ${course.section} has ${result.seats} seat(s) available!`,
-    priority: 2
-  });
-  
-  // Play notification sound by creating a tab briefly
-  chrome.tabs.create({ 
-    url: 'data:text/html,<audio autoplay><source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaBDuX4PLReC4GMYfN8+SHYB+t" type="audio/wav"></audio>', 
-    active: false 
-  }).then(tab => {
-    setTimeout(() => chrome.tabs.remove(tab.id), 1000);
-  });
-}
-
-// Function to be injected into the page to check course availability
-function checkCourseAvailability(courseCode, section) {
-  // This function will be customized based on your university's portal structure
-  // Below is a generic implementation that you'll need to adapt
-  
-  try {
-    // Common selectors that might contain course information
-    const possibleSelectors = [
-      `[data-course-code="${courseCode}"]`,
-      `[data-section="${section}"]`,
-      '.course-row',
-      '.course-item',
-      '.class-section',
-      'tr[class*="course"]',
-      'div[class*="course"]'
-    ];
-    
-    let courseElement = null;
-    
-    // Try to find the course element
-    for (const selector of possibleSelectors) {
-      const elements = document.querySelectorAll(selector);
-      for (const element of elements) {
-        const text = element.innerText || element.textContent || '';
-        if (text.includes(courseCode) && text.includes(section)) {
-          courseElement = element;
-          break;
-        }
-      }
-      if (courseElement) break;
-    }
-    
-    if (!courseElement) {
-      // Fallback: search entire page for course code and section
-      const pageText = document.body.innerText || document.body.textContent || '';
-      const courseRegex = new RegExp(`${courseCode}.*?${section}.*?(?:seat|available|full|open|closed)`, 'gi');
-      const match = pageText.match(courseRegex);
-      
-      if (match) {
-        const matchText = match[0].toLowerCase();
-        const available = !matchText.includes('full') && 
-                         !matchText.includes('closed') && 
-                         (matchText.includes('open') || matchText.includes('available'));
-        
-        return {
-          available: available,
-          seats: available ? 'Unknown' : 0,
-          found: true,
-          method: 'text_search'
-        };
-      }
-      
-      return {
-        available: false,
-        seats: 0,
-        found: false,
-        error: 'Course not found on page'
-      };
-    }
-    
-    // Extract seat information from the course element
-    const elementText = courseElement.innerText || courseElement.textContent || '';
-    
-    // Common patterns for seat availability
-    const seatPatterns = [
-      /(\d+)\s*(?:seat|spot|space)s?\s*(?:available|open|remaining)/gi,
-      /available:\s*(\d+)/gi,
-      /open:\s*(\d+)/gi,
-      /seats?:\s*(\d+)/gi,
-      /(\d+)\s*\/\s*(\d+)/g  // e.g., "5/25" format
-    ];
-    
-    let seats = 0;
-    let available = false;
-    
-    // Check for "FULL", "CLOSED", "WAITLIST" indicators
-    const fullIndicators = /(?:full|closed|waitlist|no\s*seat)/gi;
-    const openIndicators = /(?:open|available|seat)/gi;
-    
-    if (fullIndicators.test(elementText)) {
-      available = false;
-      seats = 0;
-    } else if (openIndicators.test(elementText)) {
-      available = true;
-      
-      // Try to extract actual number of seats
-      for (const pattern of seatPatterns) {
-        const match = pattern.exec(elementText);
-        if (match) {
-          seats = parseInt(match[1]) || 1;
-          break;
-        }
-      }
-      
-      if (seats === 0) seats = 'Unknown';
-    }
-    
-    return {
-      available: available,
-      seats: seats,
-      found: true,
-      method: 'element_analysis',
-      elementText: elementText.substring(0, 200) // For debugging
-    };
-    
-  } catch (error) {
-    return {
-      available: false,
-      seats: 0,
-      found: false,
-      error: error.message
-    };
   }
 }
 

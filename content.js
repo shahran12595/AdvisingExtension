@@ -6,6 +6,185 @@
   
   console.log('Course Seat Monitor content script loaded');
   
+  // Simple test function to verify script is working
+  window.testExtension = function() {
+    console.log('✅ Extension content script is working!');
+    return 'Extension is loaded and working';
+  };
+  
+  // Debug function to test course parsing
+  window.debugCourseSearch = function(courseCode, section) {
+    console.log(`🔍 Debug: Testing course search for ${courseCode}.${section}`);
+    
+    // Get all text content
+    const pageText = document.body.innerText || document.body.textContent || '';
+    console.log(`📄 Page has ${pageText.length} characters`);
+    
+    // Look for the course ID anywhere in the page
+    const fullCourseId = `${courseCode}.${section}`;
+    if (pageText.includes(fullCourseId)) {
+      console.log(`✅ Found course ID "${fullCourseId}" in page text`);
+      
+      // Find the line containing the course
+      const lines = pageText.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes(fullCourseId)) {
+          console.log(`📍 Found on line ${i}: "${line.trim()}"`);
+          
+          // Test enrollment pattern on this specific line
+          const enrollmentPattern = /(\d+)\s*\(\s*(\d+)\s*\)/g;
+          const match = enrollmentPattern.exec(line);
+          if (match) {
+            console.log(`🔢 Enrollment match found: "${match[0]}"`);
+            console.log(`   Group 1 (enrolled): ${match[1]}`);
+            console.log(`   Group 2 (capacity): ${match[2]}`);
+            console.log(`   Available would be: ${parseInt(match[2]) - parseInt(match[1])}`);
+          }
+        }
+      }
+    } else {
+      console.log(`❌ Course ID "${fullCourseId}" not found in page text`);
+    }
+    
+    // Test the container search
+    const containers = document.querySelectorAll('*');
+    let foundContainers = 0;
+    for (const container of containers) {
+      const text = container.textContent || '';
+      if (text.includes(fullCourseId)) {
+        foundContainers++;
+        console.log(`📦 Container ${foundContainers}: "${text.trim()}" (tag: ${container.tagName})`);
+        if (foundContainers >= 5) break; // Limit output
+      }
+    }
+    
+    return `Debug complete. Found ${foundContainers} containers with course ID.`;
+  };
+  
+  // Add this to global scope for testing
+  // Emergency debug function to find EXACTLY where 140 and 40 are coming from
+  window.emergencyDebug = function(courseId) {
+    console.log(`🚨 EMERGENCY DEBUG for ${courseId}`);
+    
+    const pageText = document.body.innerText || document.body.textContent || '';
+    
+    // Look for the course line specifically
+    const lines = pageText.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.includes(courseId)) {
+        console.log(`\n📍 FOUND COURSE LINE ${i}:`);
+        console.log(`"${line}"`);
+        
+        // Show 5 lines before and after for context
+        console.log('\n📄 CONTEXT:');
+        for (let j = Math.max(0, i-3); j <= Math.min(lines.length-1, i+3); j++) {
+          const marker = j === i ? '>>> ' : '    ';
+          console.log(`${marker}Line ${j}: "${lines[j]}"`);
+        }
+        
+        // Find ALL numbers in this specific line
+        const allNumbers = line.match(/\d+/g);
+        console.log(`\n🔢 ALL NUMBERS in this line: [${allNumbers ? allNumbers.join(', ') : 'none'}]`);
+        
+        // Find ALL patterns that look like enrollment
+        const patterns = [
+          /(\d+)\s*\(\s*(\d+)\s*\)/g,
+          /(\d+)\s*\/\s*(\d+)/g,
+          /\(\s*(\d+)\s*\/\s*(\d+)\s*\)/g
+        ];
+        
+        patterns.forEach((pattern, idx) => {
+          pattern.lastIndex = 0; // Reset
+          let match;
+          while ((match = pattern.exec(line)) !== null) {
+            console.log(`\n🎯 Pattern ${idx+1} found: "${match[0]}" at position ${match.index}`);
+            console.log(`   Numbers: ${match[1]} and ${match[2]}`);
+          }
+        });
+      }
+    }
+    
+    // Also search for where 140 and 40 might be coming from
+    console.log(`\n🔍 Searching for "140" in page:`);
+    const lines140 = pageText.split('\n').filter(line => line.includes('140'));
+    lines140.forEach((line, idx) => {
+      console.log(`   Line with 140: "${line.trim()}"`);
+    });
+    
+    console.log(`\n🔍 Searching for "40" in page:`);
+    const lines40 = pageText.split('\n').filter(line => line.includes('40'));
+    lines40.slice(0, 5).forEach((line, idx) => { // Limit to first 5 to avoid spam
+      console.log(`   Line with 40: "${line.trim()}"`);
+    });
+    
+    return 'Emergency debug complete';
+  };
+
+  window.testCourseCheck = async function(courseCode, section) {
+    return await checkCourseAvailability(courseCode, section);
+  };
+  
+  // Emergency debug function to find EXACTLY where 140 and 40 are coming from
+  window.emergencyDebug = function(courseId) {
+    console.log(`🚨 EMERGENCY DEBUG for ${courseId}`);
+    
+    const pageText = document.body.innerText || document.body.textContent || '';
+    
+    // Look for the course line specifically
+    const lines = pageText.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.includes(courseId)) {
+        console.log(`\n📍 FOUND COURSE LINE ${i}:`);
+        console.log(`"${line}"`);
+        
+        // Show 5 lines before and after for context
+        console.log('\n� CONTEXT:');
+        for (let j = Math.max(0, i-3); j <= Math.min(lines.length-1, i+3); j++) {
+          const marker = j === i ? '>>> ' : '    ';
+          console.log(`${marker}Line ${j}: "${lines[j]}"`);
+        }
+        
+        // Find ALL numbers in this specific line
+        const allNumbers = line.match(/\d+/g);
+        console.log(`\n🔢 ALL NUMBERS in this line: [${allNumbers ? allNumbers.join(', ') : 'none'}]`);
+        
+        // Find ALL patterns that look like enrollment
+        const patterns = [
+          /(\d+)\s*\(\s*(\d+)\s*\)/g,
+          /(\d+)\s*\/\s*(\d+)/g,
+          /\(\s*(\d+)\s*\/\s*(\d+)\s*\)/g
+        ];
+        
+        patterns.forEach((pattern, idx) => {
+          pattern.lastIndex = 0; // Reset
+          let match;
+          while ((match = pattern.exec(line)) !== null) {
+            console.log(`\n🎯 Pattern ${idx+1} found: "${match[0]}" at position ${match.index}`);
+            console.log(`   Numbers: ${match[1]} and ${match[2]}`);
+          }
+        });
+      }
+    }
+    
+    // Also search for where 140 and 40 might be coming from
+    console.log(`\n🔍 Searching for "140" in page:`);
+    const lines140 = pageText.split('\n').filter(line => line.includes('140'));
+    lines140.forEach((line, idx) => {
+      console.log(`   Line with 140: "${line.trim()}"`);
+    });
+    
+    console.log(`\n🔍 Searching for "40" in page:`);
+    const lines40 = pageText.split('\n').filter(line => line.includes('40'));
+    lines40.slice(0, 5).forEach((line, idx) => { // Limit to first 5 to avoid spam
+      console.log(`   Line with 40: "${line.trim()}"`);
+    });
+    
+    return 'Emergency debug complete';
+  };
+  
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('Content script received message:', request);
@@ -86,35 +265,37 @@
   // Enhanced course availability checking function with auto-scrolling
   async function checkCourseAvailability(courseCode, section) {
     try {
-      console.log(`Checking availability for ${courseCode} Section ${section}`);
+      console.log(`🔍 Starting availability check for ${courseCode} Section ${section}`);
       
       // NSU Portal specific: Look for course pattern like "ACT201.1"
       const fullCourseId = `${courseCode}.${section}`;
-      console.log(`Looking for: ${fullCourseId}`);
+      console.log(`🎯 Target course ID: ${fullCourseId}`);
       
       // Method 1: Check for NSU course list container first
+      console.log(`📋 Method 1: Checking NSU course list containers...`);
       const courseListResult = checkNSUCourseList(fullCourseId, courseCode, section);
       if (courseListResult.found) {
-        console.log('Found course in NSU course list:', courseListResult);
+        console.log(`✅ Found course in NSU course list:`, courseListResult);
         return courseListResult;
       }
       
       // Method 2: Quick check without scrolling first
+      console.log(`📄 Method 2: Quick page text search...`);
       const pageText = document.body.innerText || document.body.textContent || '';
-      console.log('Page text length:', pageText.length);
+      console.log(`📏 Page text length: ${pageText.length} characters`);
       
       const quickResult = checkNSUFormat(pageText, fullCourseId, courseCode, section);
       if (quickResult.found) {
-        console.log('Found course without scrolling:', quickResult);
+        console.log(`✅ Found course without scrolling:`, quickResult);
         return quickResult;
       }
       
       // Method 3: Auto-scroll and search progressively with pagination support
-      console.log('Course not found in current view, starting enhanced auto-scroll search...');
+      console.log(`🔄 Method 3: Starting enhanced auto-scroll search...`);
       return await performScrollingSearchWithPagination(fullCourseId, courseCode, section);
       
     } catch (error) {
-      console.error('Error checking course availability:', error);
+      console.error(`❌ Error checking course availability:`, error);
       return {
         success: false,
         available: 0,
@@ -130,52 +311,62 @@
   function checkNSUCourseList(fullCourseId, courseCode, section) {
     console.log(`Checking NSU course list for ${fullCourseId}`);
     
-    // Look for elements that might contain the course list
+    // Look for elements that might contain the course list with more specific targeting
     const possibleContainers = [
-      ...document.querySelectorAll('div[style*="color:red"]'), // Red course entries
-      ...document.querySelectorAll('div[style*="color:black"]'), // Black course entries  
+      ...document.querySelectorAll('div[style*="color:red"]'), // Red course entries (usually full)
+      ...document.querySelectorAll('div[style*="color:black"]'), // Black course entries (usually available)  
       ...document.querySelectorAll('td'), // Table cells
       ...document.querySelectorAll('div'), // General divs
-      ...document.querySelectorAll('span') // Spans
+      ...document.querySelectorAll('span'), // Spans
+      ...document.querySelectorAll('*') // All elements as last resort
     ];
+    
+    console.log(`Found ${possibleContainers.length} possible containers to search`);
     
     for (const container of possibleContainers) {
       const containerText = container.textContent || container.innerText || '';
       
-      // Check if this container has our course
-      if (containerText.includes(fullCourseId) || 
-          (containerText.includes(courseCode) && containerText.includes(`.${section}`))) {
+      // Check if this container has our course - be more specific about matching
+      if (containerText.trim().startsWith(fullCourseId) || 
+          containerText.includes(fullCourseId + ' ') ||
+          containerText.includes(fullCourseId + '\t') ||
+          (containerText.includes(courseCode) && containerText.includes(`.${section}`) && containerText.match(/(\d+)\((\d+)\)/))) {
         
-        console.log(`Found course in container: ${containerText.substring(0, 100)}`);
+        console.log(`Found potential course match in container: "${containerText.trim()}"`);
         
-        // Look for enrollment pattern in this container
-        const enrollmentMatch = containerText.match(/(\d+)\((\d+)\)/);
+        // Look for enrollment pattern in this container - be more precise
+        const enrollmentMatch = containerText.match(/(\d+)\s*\(\s*(\d+)\s*\)/);
         if (enrollmentMatch) {
           const enrolled = parseInt(enrollmentMatch[1]) || 0;
           const capacity = parseInt(enrollmentMatch[2]) || 0;
           const available = capacity - enrolled;
           
-          console.log(`Found enrollment: ${enrollmentMatch[0]}, Available: ${available}`);
+          console.log(`Parsed enrollment data: ${enrollmentMatch[0]} -> Enrolled: ${enrolled}, Capacity: ${capacity}, Available: ${available}`);
           
-          // Highlight the found course
-          container.style.cssText += 'background-color: yellow !important; border: 2px solid blue !important;';
-          container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          
-          // Remove highlight after 3 seconds
-          setTimeout(() => {
-            container.style.backgroundColor = '';
-            container.style.border = '';
-          }, 3000);
-          
-          return {
-            success: true,
-            available: available,
-            enrolled: enrolled,
-            capacity: capacity,
-            found: true,
-            method: 'nsu_course_list_container',
-            matchText: containerText.trim()
-          };
+          // Verify this is actually our course by checking the full context
+          if (containerText.includes(fullCourseId) || 
+              (containerText.includes(courseCode) && containerText.includes(`.${section}`))) {
+            
+            // Highlight the found course
+            container.style.cssText += 'background-color: yellow !important; border: 2px solid blue !important;';
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+              container.style.backgroundColor = '';
+              container.style.border = '';
+            }, 3000);
+            
+            return {
+              success: true,
+              available: available,
+              enrolled: enrolled,
+              capacity: capacity,
+              found: true,
+              method: 'nsu_course_list_container',
+              matchText: containerText.trim()
+            };
+          }
         }
       }
     }
@@ -306,70 +497,121 @@
   // NSU-specific function to parse course availability format like "ACT201.1    40(40)"
   function checkNSUFormat(pageText, fullCourseId, courseCode, section) {
     console.log(`Searching for course: ${fullCourseId} (${courseCode} section ${section})`);
+    console.log(`Page text sample: ${pageText.substring(0, 500)}...`);
     
     // Look for patterns like "ACT201.1    40(40)" or "EEE111.2    34(35)"
-    // Format: enrolled(capacity) - need to calculate available = capacity - enrolled
+    // NSU format might be: capacity(enrolled) OR enrolled(capacity) - we need to test both
     const patterns = [
-      // Full course ID with enrollment: "ACT201.1    40(40)"
-      new RegExp(`${fullCourseId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+(\\d+)\\((\\d+)\\)`, 'gi'),
-      // Course code and section separately with flexible spacing
-      new RegExp(`${courseCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.${section}\\s+(\\d+)\\((\\d+)\\)`, 'gi'),
-      // More flexible pattern with word boundaries
-      new RegExp(`\\b${courseCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.${section}\\b[\\s\\S]*?(\\d+)\\((\\d+)\\)`, 'gi')
+      // Exact match: "ACT201.1    40(40)" with whitespace
+      new RegExp(`${fullCourseId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+(\\d+)\\s*\\(\\s*(\\d+)\\s*\\)`, 'gi'),
+      // Course code with dot and section: "ACT201.1" followed by enrollment
+      new RegExp(`${courseCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.${section}\\s+(\\d+)\\s*\\(\\s*(\\d+)\\s*\\)`, 'gi'),
+      // More flexible pattern allowing for extra characters
+      new RegExp(`\\b${courseCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.${section}\\b[\\s\\S]{0,50}(\\d+)\\s*\\(\\s*(\\d+)\\s*\\)`, 'gi')
     ];
     
     for (let i = 0; i < patterns.length; i++) {
       const pattern = patterns[i];
+      console.log(`Testing pattern ${i + 1}: ${pattern.source}`);
+      
+      // Reset pattern for fresh search
+      pattern.lastIndex = 0;
       const match = pattern.exec(pageText);
-      if (match) {
-        const enrolled = parseInt(match[1]) || 0;  // Currently enrolled students
-        const capacity = parseInt(match[2]) || 0;  // Total capacity
-        const available = capacity - enrolled;     // Available seats = capacity - enrolled
-        
-        console.log(`Found course with pattern ${i + 1}: ${match[0]}, Enrolled: ${enrolled}, Capacity: ${capacity}, Available: ${available}`);
-        
-        return {
+      
+        if (match) {
+          const num1 = parseInt(match[1]) || 0;  // First number
+          const num2 = parseInt(match[2]) || 0;  // Second number (in parentheses)
+          
+          console.log(`✅ Found course with pattern ${i + 1}:`);
+          console.log(`   Match: "${match[0]}"`);
+          console.log(`   Number 1: ${num1}, Number 2: ${num2}`);
+          console.log(`   RAW MATCH ARRAY:`, match);
+          
+          // EMERGENCY DEBUG: Let's see the surrounding text
+          const matchIndex = pageText.indexOf(match[0]);
+          const before = pageText.substring(Math.max(0, matchIndex - 100), matchIndex);
+          const after = pageText.substring(matchIndex + match[0].length, Math.min(pageText.length, matchIndex + match[0].length + 100));
+          console.log(`   CONTEXT BEFORE: "${before}"`);
+          console.log(`   CONTEXT AFTER: "${after}"`);
+          
+          // Determine which interpretation makes sense
+          // If num1 > num2, then likely format is capacity(enrolled)
+          // If num2 > num1, then likely format is enrolled(capacity)
+          let enrolled, capacity, available;
+          
+          if (num1 >= num2) {
+            // Format: capacity(enrolled)
+            capacity = num1;
+            enrolled = num2;
+            available = capacity - enrolled;
+            console.log(`   Interpreting as capacity(enrolled): ${capacity}(${enrolled})`);
+          } else {
+            // Format: enrolled(capacity) 
+            enrolled = num1;
+            capacity = num2;
+            available = capacity - enrolled;
+            console.log(`   Interpreting as enrolled(capacity): ${enrolled}(${capacity})`);
+          }
+          
+          console.log(`   Final: Enrolled: ${enrolled}, Capacity: ${capacity}, Available: ${available}`);        return {
           success: true,
-          available: available,
+          available: Math.max(0, available), // Ensure non-negative
           enrolled: enrolled,
           capacity: capacity,
           found: true,
           method: `nsu_text_pattern_${i + 1}`,
           matchText: match[0]
         };
+      } else {
+        console.log(`❌ Pattern ${i + 1} did not match`);
       }
     }
     
-    // Try a more flexible search for just the course code and section pattern
-    const flexiblePattern = new RegExp(`${courseCode}\\.${section}`, 'gi');
-    if (flexiblePattern.test(pageText)) {
-      console.log(`Found course code ${courseCode}.${section} but couldn't extract enrollment data`);
-      // Look for any enrollment pattern near this course
-      const lines = pageText.split('\n');
-      for (const line of lines) {
-        if (line.includes(`${courseCode}.${section}`)) {
-          const enrollmentMatch = line.match(/(\d+)\((\d+)\)/);
-          if (enrollmentMatch) {
-            const enrolled = parseInt(enrollmentMatch[1]) || 0;
-            const capacity = parseInt(enrollmentMatch[2]) || 0;
-            const available = capacity - enrolled;
-            
-            console.log(`Found enrollment in line: ${line.trim()}, Available: ${available}`);
-            
-            return {
-              success: true,
-              available: available,
-              enrolled: enrolled,
-              capacity: capacity,
-              found: true,
-              method: 'nsu_line_search',
-              matchText: line.trim()
-            };
+    // Try a more flexible line-by-line search
+    console.log(`Trying line-by-line search for ${courseCode}.${section}`);
+    const lines = pageText.split('\n');
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const line = lines[lineIndex];
+      if (line.includes(`${courseCode}.${section}`)) {
+        console.log(`Found course in line ${lineIndex}: "${line.trim()}"`);
+        
+        const enrollmentMatch = line.match(/(\d+)\s*\(\s*(\d+)\s*\)/);
+        if (enrollmentMatch) {
+          const num1 = parseInt(enrollmentMatch[1]) || 0;
+          const num2 = parseInt(enrollmentMatch[2]) || 0;
+          
+          let enrolled, capacity, available;
+          
+          if (num1 >= num2) {
+            // Format: capacity(enrolled)
+            capacity = num1;
+            enrolled = num2;
+            available = capacity - enrolled;
+            console.log(`   Line interpreting as capacity(enrolled): ${capacity}(${enrolled})`);
+          } else {
+            // Format: enrolled(capacity)
+            enrolled = num1;
+            capacity = num2;
+            available = capacity - enrolled;
+            console.log(`   Line interpreting as enrolled(capacity): ${enrolled}(${capacity})`);
           }
+          
+          console.log(`   Line result: Enrolled: ${enrolled}, Capacity: ${capacity}, Available: ${available}`);
+          
+          return {
+            success: true,
+            available: Math.max(0, available),
+            enrolled: enrolled,
+            capacity: capacity,
+            found: true,
+            method: 'nsu_line_search',
+            matchText: line.trim()
+          };
         }
       }
     }
     
+    console.log(`❌ Course ${fullCourseId} not found in page text`);
     return { found: false };
   }
   

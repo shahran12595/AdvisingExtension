@@ -21,7 +21,7 @@
   "content_scripts": [
     {
       "matches": ["https://*.edu/*", "http://*.edu/*", "https://rds3.northsouth.edu/*", "file://*/*"],
-      "js": ["portal-configs.js", "content.js"],
+      "js": ["content.js"],
       "run_at": "document_end"
     }
   ],
